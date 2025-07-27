@@ -1,0 +1,1357 @@
+<script type="text/javascript">
+        var gk_isXlsx = false;
+        var gk_xlsxFileLookup = {};
+        var gk_fileData = {};
+        function filledCell(cell) {
+          return cell !== '' && cell != null;
+        }
+        function loadFileData(filename) {
+        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+            try {
+                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+                var firstSheetName = workbook.SheetNames[0];
+                var worksheet = workbook.Sheets[firstSheetName];
+
+                // Convert sheet to JSON to filter blank rows
+                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+                // Filter out blank rows (rows where all cells are empty, null, or undefined)
+                var filteredData = jsonData.filter(row => row.some(filledCell));
+
+                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
+                var headerRowIndex = filteredData.findIndex((row, index) =>
+                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
+                );
+                // Fallback
+                if (headerRowIndex === -1 || headerRowIndex > 25) {
+                  headerRowIndex = 0;
+                }
+
+                // Convert filtered JSON back to CSV
+                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
+                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+                return csv;
+            } catch (e) {
+                console.error(e);
+                return "";
+            }
+        }
+        return gk_fileData[filename] || "";
+        }
+        </script><!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WorkflowHub - Marketplace d'Automatisation</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            line-height: 1.6;
+            color: #e0e0e0;
+            background: linear-gradient(135deg, #1e1e1e 0%, #2c2c2c 100%);
+            min-height: 100vh;
+        }
+
+        /* Header */
+        .header {
+            background: rgba(30, 30, 30, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 1rem 0;
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .nav {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 1.5rem;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: #00ff88;
+            text-decoration: none;
+        }
+
+        .nav-links {
+            display: flex;
+            list-style: none;
+            gap: 1.5rem;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: #e0e0e0;
+            font-weight: 500;
+            font-size: 1rem;
+            transition: color 0.3s ease;
+        }
+
+        .nav-links a:hover {
+            color: #00ff88;
+        }
+
+        .hamburger {
+            display: none;
+            font-size: 1.8rem;
+            color: #e0e0e0;
+            cursor: pointer;
+        }
+
+        /* Hero Section */
+        .hero {
+            margin-top: 70px;
+            padding: 4rem 1.5rem;
+            text-align: center;
+            color: #ffffff;
+            max-width: 1200px;
+            margin-left: auto;
+            margin-right: auto;
+            background: #1e1e1e;
+            border-bottom: 2px solid #00ff88;
+        }
+
+        .hero h1 {
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin-bottom: 1rem;
+            text-shadow: 0 0 20px rgba(0, 255, 136, 0.5);
+        }
+
+        .hero p {
+            font-size: 1.1rem;
+            margin-bottom: 2rem;
+            opacity: 0.85;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .hero-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 0.8rem 1.5rem;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #00ff88 0%, #00cc66 100%);
+            color: #1e1e1e;
+            box-shadow: 0 4px 15px rgba(0, 255, 136, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 255, 136, 0.5);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: #00ff88;
+            border: 2px solid #00ff88;
+        }
+
+        .btn-secondary:hover {
+            background: rgba(0, 255, 136, 0.1);
+            transform: translateY(-2px);
+        }
+
+        /* Strengths Section */
+        .strengths {
+            max-width: 1200px;
+            margin: 3rem auto;
+            padding: 0 1.5rem;
+            text-align: center;
+        }
+
+        .strengths h2 {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #00ff88;
+            margin-bottom: 1.5rem;
+            text-shadow: 0 0 10px rgba(0, 255, 136, 0.3);
+        }
+
+        .strengths-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .strength-card {
+            background: #333333;
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            border: 1px solid #444444;
+            transition: all 0.3s ease;
+        }
+
+        .strength-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 20px rgba(0, 255, 136, 0.2);
+            border-color: #00ff88;
+        }
+
+        .strength-card i {
+            font-size: 2rem;
+            color: #00ff88;
+            margin-bottom: 0.8rem;
+        }
+
+        .strength-card h3 {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #e0e0e0;
+            margin-bottom: 0.8rem;
+        }
+
+        .strength-card p {
+            font-size: 0.9rem;
+            color: #b0b0b0;
+        }
+
+        /* Main Content */
+        .main-content {
+            background: #2c2c2c;
+            border-radius: 20px 20px 0 0;
+            margin-top: -20px;
+            position: relative;
+            z-index: 1;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 3rem 1.5rem;
+        }
+
+        .section-title {
+            font-size: 2rem;
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 2rem;
+            color: #00ff88;
+            text-shadow: 0 0 10px rgba(0, 255, 136, 0.3);
+        }
+
+        /* Workflow Grid */
+        .workflow-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 3rem;
+        }
+
+        .workflow-card {
+            background: #333333;
+            border-radius: 12px;
+            padding: 1.2rem;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+            border: 1px solid #444444;
+        }
+
+        .workflow-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 20px rgba(0, 255, 136, 0.2);
+            border-color: #00ff88;
+        }
+
+        .workflow-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 0.8rem;
+        }
+
+        .workflow-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            color: #e0e0e0;
+        }
+
+        .platform-badge {
+            padding: 0.3rem 0.7rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .platform-n8n { background: #ff2d55; color: #ffffff; }
+        .platform-make { background: #007bff; color: #ffffff; }
+        .platform-zapier { background: #ff6b35; color: #ffffff; }
+
+        .workflow-description {
+            color: #b0b0b0;
+            margin-bottom: 0.8rem;
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+
+        .workflow-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .workflow-price {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #00ff88;
+        }
+
+        .workflow-rating {
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+            color: #ffd700;
+            font-size: 0.9rem;
+            margin-bottom: 0.8rem;
+        }
+
+        .btn-buy {
+            background: linear-gradient(135deg, #ff2d55 0%, #ff6b35 100%);
+            color: #ffffff;
+            padding: 0.6rem 1.2rem;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        .btn-buy:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(255, 45, 85, 0.4);
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 2000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-content {
+            background: #333333;
+            margin: 10% auto;
+            padding: 1.5rem;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 700px;
+            max-height: 80vh;
+            overflow-y: auto;
+            position: relative;
+            border: 1px solid #444444;
+        }
+
+        .close {
+            position: absolute;
+            right: 1rem;
+            top: 1rem;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #b0b0b0;
+        }
+
+        .close:hover {
+            color: #00ff88;
+        }
+
+        .workflow-detail-image {
+            width: 100%;
+            height: 200px;
+            background: linear-gradient(45deg, #2c2c2c, #3c3c3c);
+            border-radius: 12px;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #b0b0b0;
+            font-size: 1rem;
+        }
+
+        /* Custom Order Form */
+        .custom-order-form {
+            background: #3c3c3c;
+            padding: 1.5rem;
+            border-radius: 12px;
+            margin: 1.5rem auto;
+            max-width: 600px;
+        }
+
+        .form-group {
+            margin-bottom: 1.2rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: #e0e0e0;
+            font-size: 0.9rem;
+        }
+
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 0.8rem;
+            border: 1px solid #555555;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            background: #2c2c2c;
+            color: #e0e0e0;
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 120px;
+        }
+
+        /* FAQ */
+        .faq-item {
+            background: #333333;
+            border-radius: 12px;
+            margin-bottom: 1rem;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+        }
+
+        .faq-question {
+            padding: 1.2rem;
+            cursor: pointer;
+            font-weight: 600;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #3c3c3c;
+            transition: background 0.3s ease;
+            color: #e0e0e0;
+            font-size: 0.9rem;
+        }
+
+        .faq-question:hover {
+            background: #4a4a4a;
+        }
+
+        .faq-answer {
+            padding: 0 1.2rem;
+            max-height: 0;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            color: #b0b0b0;
+            font-size: 0.9rem;
+        }
+
+        .faq-answer.active {
+            padding: 1.2rem;
+            max-height: 200px;
+        }
+
+        /* Testimonials */
+        .testimonials {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .testimonial {
+            background: #333333;
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            text-align: center;
+            border: 1px solid #444444;
+        }
+
+        .testimonial-text {
+            font-style: italic;
+            margin-bottom: 0.8rem;
+            color: #b0b0b0;
+            font-size: 0.9rem;
+        }
+
+        .testimonial-author {
+            font-weight: 600;
+            color: #e0e0e0;
+            font-size: 0.9rem;
+        }
+
+        /* Footer */
+        .footer {
+            background: #1e1e1e;
+            color: #e0e0e0;
+            padding: 2rem 1.5rem;
+            border-top: 1px solid #444444;
+        }
+
+        .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .footer-section h3 {
+            margin-bottom: 0.8rem;
+            color: #00ff88;
+            font-size: 1.1rem;
+        }
+
+        .footer-section a {
+            color: #b0b0b0;
+            text-decoration: none;
+            display: block;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+            transition: color 0.3s ease;
+        }
+
+        .footer-section a:hover {
+            color: #00ff88;
+        }
+
+        .footer-bottom {
+            text-align: center;
+            padding-top: 1.5rem;
+            margin-top: 1.5rem;
+            border-top: 1px solid #444444;
+            color: #b0b0b0;
+            font-size: 0.9rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .nav-links {
+                display: none;
+                flex-direction: column;
+                position: absolute;
+                top: 70px;
+                left: 0;
+                width: 100%;
+                background: #2c2c2c;
+                padding: 1rem;
+                text-align: center;
+            }
+
+            .nav-links.active {
+                display: flex;
+            }
+
+            .hamburger {
+                display: block;
+            }
+
+            .hero {
+                margin-top: 60px;
+                padding: 3rem 1rem;
+            }
+
+            .hero h1 {
+                font-size: 1.8rem;
+            }
+
+            .hero p {
+                font-size: 1rem;
+            }
+
+            .strengths h2 {
+                font-size: 1.5rem;
+            }
+
+            .strength-card {
+                padding: 1rem;
+            }
+
+            .strength-card h3 {
+                font-size: 1rem;
+            }
+
+            .strength-card p {
+                font-size: 0.85rem;
+            }
+
+            .workflow-grid,
+            .strengths-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .workflow-card {
+                padding: 1rem;
+            }
+
+            .workflow-title {
+                font-size: 1rem;
+            }
+
+            .workflow-description {
+                font-size: 0.85rem;
+            }
+
+            .workflow-price {
+                font-size: 1.1rem;
+            }
+
+            .section-title {
+                font-size: 1.5rem;
+            }
+
+            .hero-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .btn {
+                width: 100%;
+                max-width: 250px;
+                justify-content: center;
+                font-size: 0.9rem;
+                padding: 0.7rem 1rem;
+            }
+
+            .modal-content {
+                margin: 15% auto;
+                padding: 1rem;
+                width: 95%;
+            }
+
+            .custom-order-form {
+                padding: 1rem;
+                max-width: 100%;
+            }
+
+            .form-group label {
+                font-size: 0.85rem;
+            }
+
+            .form-group input,
+            .form-group textarea,
+            .form-group select {
+                font-size: 0.85rem;
+                padding: 0.7rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .logo {
+                font-size: 1.2rem;
+            }
+
+            .hamburger {
+                font-size: 1.5rem;
+            }
+
+            .hero h1 {
+                font-size: 1.5rem;
+            }
+
+            .hero p {
+                font-size: 0.9rem;
+            }
+
+            .strengths h2 {
+                font-size: 1.3rem;
+            }
+
+            .section-title {
+                font-size: 1.3rem;
+            }
+
+            .btn {
+                font-size: 0.85rem;
+                padding: 0.6rem 0.8rem;
+            }
+
+            .footer-section h3 {
+                font-size: 1rem;
+            }
+
+            .footer-section a {
+                font-size: 0.85rem;
+            }
+        }
+
+        /* Animations */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .workflow-card,
+        .strength-card {
+            animation: fadeInUp 0.5s ease forwards;
+        }
+
+        @media (max-width: 768px) {
+            .workflow-card,
+            .strength-card {
+                animation: none;
+            }
+        }
+
+        /* Hidden sections */
+        .section {
+            display: none;
+        }
+
+        .section.active {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <nav class="nav">
+            <a href="#" class="logo">WorkflowHub</a>
+            <i class="fas fa-bars hamburger" onclick="toggleMobileMenu()"></i>
+            <ul class="nav-links">
+                <li><a href="#" onclick="showSection('home')">Accueil</a></li>
+                <li><a href="#" onclick="showSection('catalog')">Catalogue</a></li>
+                <li><a href="#" onclick="showSection('custom-order')">Commande personnalisée</a></li>
+                <li><a href="#" onclick="showSection('faq')">FAQ</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <!-- Hero Section -->
+    <section id="home" class="section active">
+        <div class="hero">
+            <h1>Automatisez tout avec nos workflows prêts à l'emploi</h1>
+            <p>Découvrez des centaines de templates d'automatisation pour n8n, Make, et Zapier. Gagnez du temps et boostez votre productivité dès aujourd'hui.</p>
+            <div class="hero-buttons">
+                <a href="#" class="btn btn-primary" onclick="showSection('catalog')">
+                    <i class="fas fa-shopping-cart"></i>
+                    Acheter un workflow
+                </a>
+                <a href="#" class="btn btn-secondary" onclick="showSection('custom-order')">
+                    <i class="fas fa-cogs"></i>
+                    Commander un workflow personnalisé
+                </a>
+            </div>
+        </div>
+        <!-- Strengths Section -->
+        <div class="strengths">
+            <h2>Pourquoi choisir WorkflowHub ?</h2>
+            <div class="strengths-grid">
+                <div class="strength-card">
+                    <i class="fas fa-rocket"></i>
+                    <h3>Gain de temps</h3>
+                    <p>Nos workflows prêts à l’emploi vous permettent d’automatiser vos tâches en quelques minutes, sans codage.</p>
+                </div>
+                <div class="strength-card">
+                    <i class="fas fa-star"></i>
+                    <h3>Qualité garantie</h3>
+                    <p>Tous nos workflows sont testés et optimisés par des experts pour une performance maximale.</p>
+                </div>
+                <div class="strength-card">
+                    <i class="fas fa-headset"></i>
+                    <h3>Support dédié</h3>
+                    <p>Profitez d’un support technique gratuit pendant 30 jours pour une intégration sans souci.</p>
+                </div>
+                <div class="strength-card">
+                    <i class="fas fa-cogs"></i>
+                    <h3>Personnalisation</h3>
+                    <p>Commandez des workflows sur mesure adaptés à vos besoins spécifiques via notre service dédié.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <div class="main-content">
+        <!-- Catalog Section -->
+        <section id="catalog" class="section">
+            <div class="container">
+                <h2 class="section-title">Catalogue des Workflows</h2>
+                <div class="workflow-grid" id="workflowGrid">
+                    <!-- Les workflows seront générés par JavaScript -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Custom Order Section -->
+        <section id="custom-order" class="section">
+            <div class="container">
+                <h2 class="section-title">Vous ne trouvez pas ce que vous cherchez ?</h2>
+                <p style="text-align: center; color: #b0b0b0; margin-bottom: 1.5rem; max-width: 600px; margin-left: auto; margin-right: auto;">
+                    Décrivez-nous votre besoin et nous créerons un workflow personnalisé rien que pour vous.
+                </p>
+                <div class="custom-order-form">
+                    <form id="customOrderForm">
+                        <div class="form-group">
+                            <label for="name">Nom</label>
+                            <input type="text" id="name" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="email">Email</label>
+                            <input type="email" id="email" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="platform">Plateforme souhaitée</label>
+                            <select id="platform" required>
+                                <option value="">Sélectionner une plateforme</option>
+                                <option value="Zapier">Zapier</option>
+                                <option value="Make">Make</option>
+                                <option value="n8n">n8n</option>
+                                <option value="Autre">Autre</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="description">Description du besoin</label>
+                            <textarea id="description" required placeholder="Décrivez en détail le workflow que vous souhaitez (ex : automatisation d'emails, intégration CRM, etc.)"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="budget">Budget estimé (€, facultatif)</label>
+                            <input type="number" id="budget" min="0" step="0.01" placeholder="Votre budget approximatif">
+                        </div>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fab fa-whatsapp"></i>
+                            Envoyer la demande
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </section>
+
+        <!-- FAQ Section -->
+        <section id="faq" class="section">
+            <div class="container">
+                <h2 class="section-title">Questions Fréquentes</h2>
+                <div class="faq-container">
+                    <div class="faq-item">
+                        <div class="faq-question" onclick="toggleFaq(this)">
+                            Comment installer un workflow ?
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="faq-answer">
+                            Après l'achat, vous recevrez un fichier JSON que vous pourrez importer directement dans votre plateforme (n8n, Make, ou Zapier). Des instructions détaillées sont fournies avec chaque workflow.
+                        </div>
+                    </div>
+                    <div class="faq-item">
+                        <div class="faq-question" onclick="toggleFaq(this)">
+                            Les workflows sont-ils personnalisables ?
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="faq-answer">
+                            Oui, tous nos workflows sont entièrement personnalisables. Vous pouvez modifier les paramètres, ajouter des étapes, ou adapter le workflow à vos besoins spécifiques.
+                        </div>
+                    </div>
+                    <div class="faq-item">
+                        <div class="faq-question" onclick="toggleFaq(this)">
+                            Proposez-vous un support technique ?
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="faq-answer">
+                            Oui, nous offrons un support technique gratuit pendant 30 jours après l'achat. Contactez-nous via WhatsApp pour toute question ou problème d'installation.
+                        </div>
+                    </div>
+                </div>
+
+                <h3 style="margin-top: 2rem; text-align: center; color: #00ff88; font-size: 1.5rem;">Témoignages Clients</h3>
+                <div class="testimonials">
+                    <div class="testimonial">
+                        <div class="testimonial-text">
+                            "Ces workflows m'ont fait économiser des heures de développement. Interface intuitive et templates de qualité professionnelle."
+                        </div>
+                        <div class="testimonial-author">- Marie D., Consultante Marketing</div>
+                    </div>
+                    <div class="testimonial">
+                        <div class="testimonial-text">
+                            "Parfait pour automatiser notre CRM. Installation simple et résultats immédiats. Je recommande vivement !"
+                        </div>
+                        <div class="testimonial-author">- Pierre L., Directeur Commercial</div>
+                    </div>
+                    <div class="testimonial">
+                        <div class="testimonial-text">
+                            "La variété des workflows disponibles est impressionnante. Support client réactif et professionnel."
+                        </div>
+                        <div class="testimonial-author">- Sophie M., Entrepreneur</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- Modal pour les détails du workflow -->
+    <div id="workflowModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <div id="modalContent">
+                <!-- Le contenu sera généré par JavaScript -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3>WorkflowHub</h3>
+                <p>La marketplace #1 pour les workflows d'automatisation no-code.</p>
+            </div>
+            <div class="footer-section">
+                <h3>Ressources</h3>
+                <a href="#">Documentation</a>
+                <a href="#">Tutoriels</a>
+                <a href="#">Blog</a>
+                <a href="#">GitHub</a>
+            </div>
+            <div class="footer-section">
+                <h3>Support</h3>
+                <a href="#">Centre d'aide</a>
+                <a href="#">Contact</a>
+                <a href="#">WhatsApp</a>
+                <a href="#">Communauté</a>
+            </div>
+            <div class="footer-section">
+                <h3>Légal</h3>
+                <a href="#">Mentions légales</a>
+                <a href="#">Politique de confidentialité</a>
+                <a href="#">CGU</a>
+                <a href="#">CGV</a>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2024 WorkflowHub. Tous droits réservés.</p>
+        </div>
+    </footer>
+
+    <script>
+        // Configuration WhatsApp
+        const WHATSAPP_NUMBER = "+212600000000"; // Remplacez par votre numéro
+
+        // Base de données des workflows
+        const workflows = [
+            {
+                id: 1,
+                title: "Automatisation Email Marketing",
+                platform: "n8n",
+                description: "Workflow complet pour automatiser vos campagnes email avec segmentation et suivi des performances.",
+                price: 29.99,
+                rating: 4.8,
+                reviews: 24,
+                category: "email",
+                github: "https://github.com/example/email-automation",
+                instructions: "1. Importez le fichier JSON dans n8n\n2. Configurez vos credentials email\n3. Personnalisez les templates\n4. Activez le workflow"
+            },
+            {
+                id: 2,
+                title: "Synchronisation CRM Avancée",
+                platform: "make",
+                description: "Synchronisez automatiquement vos leads entre plusieurs plateformes CRM en temps réel.",
+                price: 39.99,
+                rating: 4.9,
+                reviews: 18,
+                category: "crm",
+                github: "https://github.com/example/crm-sync",
+                instructions: "1. Importez dans Make\n2. Connectez vos CRM\n3. Mappez les champs\n4. Testez la synchronisation"
+            },
+            {
+                id: 3,
+                title: "Gestion Réseaux Sociaux",
+                platform: "zapier",
+                description: "Publiez automatiquement sur tous vos réseaux sociaux depuis une seule source.",
+                price: 24.99,
+                rating: 4.7,
+                reviews: 31,
+                category: "social",
+                github: "https://github.com/example/social-media",
+                instructions: "1. Importez dans Zapier\n2. Connectez vos comptes sociaux\n3. Définissez les règles de publication\n4. Programmez vos posts"
+            },
+            {
+                id: 4,
+                title: "Traitement de Données E-commerce",
+                platform: "n8n",
+                description: "Analysez et synchronisez vos données de vente entre votre boutique et vos outils d'analyse.",
+                price: 34.99,
+                rating: 4.6,
+                reviews: 12,
+                category: "ecommerce",
+                github: "https://github.com/example/ecommerce-data",
+                instructions: "1. Configurez les connexions API\n2. Importez le workflow\n3. Personnalisez les métriques\n4. Activez la synchronisation"
+            },
+            {
+                id: 5,
+                title: "Automatisation Support Client",
+                platform: "make",
+                description: "Triez et routez automatiquement vos tickets de support selon leur priorité et catégorie.",
+                price: 27.99,
+                rating: 4.8,
+                reviews: 20,
+                category: "support",
+                github: "https://github.com/example/support-automation",
+                instructions: "1. Connectez votre système de tickets\n2. Importez le workflow\n3. Configurez les règles de routage\n4. Testez l'automatisation"
+            },
+            {
+                id: 6,
+                title: "Génération de Rapports Automatique",
+                platform: "n8n",
+                description: "Créez et envoyez automatiquement vos rapports de performance hebdomadaires.",
+                price: 32.99,
+                rating: 4.9,
+                reviews: 15,
+                category: "data",
+                github: "https://github.com/example/report-automation",
+                instructions: "1. Configurez vos sources de données\n2. Importez le template\n3. Personnalisez le format\n4. Programmez l'envoi"
+            }
+        ];
+
+        // Fonctions de navigation
+        function showSection(sectionId) {
+            document.querySelectorAll('.section').forEach(section => {
+                section.classList.remove('active');
+            });
+            document.getElementById(sectionId).classList.add('active');
+            if (sectionId === 'catalog') {
+                generateWorkflowGrid();
+            }
+            // Fermer le menu mobile après sélection
+            document.querySelector('.nav-links').classList.remove('active');
+        }
+
+        // Générer la grille des workflows
+        function generateWorkflowGrid() {
+            const grid = document.getElementById('workflowGrid');
+            grid.innerHTML = workflows.map(workflow => `
+                <div class="workflow-card">
+                    <div class="workflow-header">
+                        <div>
+                            <h3 class="workflow-title">${workflow.title}</h3>
+                            <div class="workflow-rating">
+                                ${generateStars(workflow.rating)}
+                                <span>(${workflow.reviews})</span>
+                            </div>
+                        </div>
+                        <span class="platform-badge platform-${workflow.platform}">${workflow.platform}</span>
+                    </div>
+                    <p class="workflow-description">${workflow.description}</p>
+                    <div class="workflow-footer">
+                        <span class="workflow-price">€${workflow.price}</span>
+                        <div>
+                            <button class="btn-buy" onclick="buyWorkflow('${workflow.title}', ${workflow.price})">
+                                <i class="fab fa-whatsapp"></i>
+                                Acheter
+                            </button>
+                            <button class="btn" style="margin-left: 0.5rem; padding: 0.6rem 0.8rem; background: #3c3c3c; color: #e0e0e0;" onclick="showWorkflowDetails(${workflow.id})">
+                                <i class="fas fa-info-circle"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Générer les étoiles de notation
+        function generateStars(rating) {
+            const fullStars = Math.floor(rating);
+            const hasHalfStar = rating % 1 !== 0;
+            let stars = '';
+            for (let i = 0; i < fullStars; i++) {
+                stars += '<i class="fas fa-star"></i>';
+            }
+            if (hasHalfStar) {
+                stars += '<i class="fas fa-star-half-alt"></i>';
+            }
+            const emptyStars = 5 - Math.ceil(rating);
+            for (let i = 0; i < emptyStars; i++) {
+                stars += '<i class="far fa-star"></i>';
+            }
+            return stars;
+        }
+
+        // Fonction d'achat WhatsApp
+        function buyWorkflow(workflowName, price) {
+            const message = `Bonjour, je souhaite acheter le workflow "${workflowName}" au prix de €${price}.`;
+            const encodedMessage = encodeURIComponent(message);
+            const whatsappUrl = `https://wa.me/${WHATSAPP_NUMBER.replace('+', '')}?text=${encodedMessage}`;
+            window.open(whatsappUrl, '_blank');
+        }
+
+        // Afficher les détails d'un workflow
+        function showWorkflowDetails(workflowId) {
+            const workflow = workflows.find(w => w.id === workflowId);
+            if (!workflow) return;
+            const modalContent = document.getElementById('modalContent');
+            modalContent.innerHTML = `
+                <h2 style="color: #e0e0e0; font-size: 1.5rem;">${workflow.title}</h2>
+                <span class="platform-badge platform-${workflow.platform}" style="margin-bottom: 1rem; display: inline-block;">${workflow.platform}</span>
+                <div class="workflow-detail-image">
+                    <i class="fas fa-image" style="font-size: 2rem;"></i>
+                    <div style="margin-left: 1rem;">
+                        <div>Capture d'écran du workflow</div>
+                        <small>Mockup de démonstration</small>
+                    </div>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr; gap: 1.5rem; margin-bottom: 1.5rem;">
+                    <div>
+                        <h3 style="color: #00ff88; font-size: 1.2rem;">Description</h3>
+                        <p style="color: #b0b0b0; font-size: 0.9rem;">${workflow.description}</p>
+                        <h3 style="color: #00ff88; font-size: 1.2rem;">Prix</h3>
+                        <p style="font-size: 1.3rem; font-weight: bold; color: #00ff88;">€${workflow.price}</p>
+                        <h3 style="color: #00ff88; font-size: 1.2rem;">Évaluation</h3>
+                        <div style="display: flex; align-items: center; gap: 0.5rem;">
+                            ${generateStars(workflow.rating)}
+                            <span>(${workflow.reviews} avis)</span>
+                        </div>
+                    </div>
+                    <div>
+                        <h3 style="color: #00ff88; font-size: 1.2rem;">Instructions d'installation</h3>
+                        <pre style="background: #3c3c3c; padding: 0.8rem; border-radius: 8px; white-space: pre-wrap; color: #b0b0b0; font-size: 0.9rem;">${workflow.instructions}</pre>
+                        <h3 style="color: #00ff88; font-size: 1.2rem;">Liens utiles</h3>
+                        <p><a href="${workflow.github}" target="_blank" style="color: #00ff88; font-size: 0.9rem;"><i class="fab fa-github"></i> Voir sur GitHub</a></p>
+                        <p><a href="#" onclick="alert('Démo interactive bientôt disponible')" style="color: #00ff88; font-size: 0.9rem;"><i class="fas fa-play"></i> Voir la démo</a></p>
+                    </div>
+                </div>
+                <div style="text-align: center; padding-top: 1.5rem; border-top: 1px solid #444444;">
+                    <button class="btn-buy" style="font-size: 1rem; padding: 0.8rem 1.5rem;" onclick="buyWorkflow('${workflow.title}', ${workflow.price})">
+                        <i class="fab fa-whatsapp"></i>
+                        Acheter ce workflow pour €${workflow.price}
+                    </button>
+                </div>
+            `;
+            document.getElementById('workflowModal').style.display = 'block';
+        }
+
+        // Fermer la modal
+        function closeModal() {
+            document.getElementById('workflowModal').style.display = 'none';
+        }
+
+        // Fermer la modal en cliquant à l'extérieur
+        window.onclick = function(event) {
+            const modal = document.getElementById('workflowModal');
+            if (event.target === modal) {
+                modal.style.display = 'none';
+            }
+        }
+
+        // Toggle FAQ
+        function toggleFaq(element) {
+            const answer = element.nextElementSibling;
+            const icon = element.querySelector('i');
+            answer.classList.toggle('active');
+            if (answer.classList.contains('active')) {
+                icon.style.transform = 'rotate(180deg)';
+            } else {
+                icon.style.transform = 'rotate(0deg)';
+            }
+        }
+
+        // Gestion du formulaire de commande personnalisée
+        document.addEventListener('DOMContentLoaded', function() {
+            const customOrderForm = document.getElementById('customOrderForm');
+            if (customOrderForm) {
+                customOrderForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    const name = document.getElementById('name').value;
+                    const email = document.getElementById('email').value;
+                    const platform = document.getElementById('platform').value;
+                    const description = document.getElementById('description').value;
+                    const budget = document.getElementById('budget').value || 'Non spécifié';
+                    const message = `Bonjour, je souhaite un workflow personnalisé pour ${platform}. Mon besoin : ${description}. Mon nom est ${name}, email : ${email}, budget : ${budget}`;
+                    const encodedMessage = encodeURIComponent(message);
+                    const whatsappUrl = `https://wa.me/${WHATSAPP_NUMBER.replace('+', '')}?text=${encodedMessage}`;
+                    window.open(whatsappUrl, '_blank');
+                    customOrderForm.reset();
+                    alert('Votre demande a été envoyée avec succès ! Nous vous contacterons bientôt.');
+                });
+            }
+            if (document.getElementById('catalog').classList.contains('active')) {
+                generateWorkflowGrid();
+            }
+        });
+
+        // Recherche et filtrage
+        function filterWorkflows(platform = '', category = '', searchTerm = '') {
+            let filteredWorkflows = workflows;
+            if (platform) {
+                filteredWorkflows = filteredWorkflows.filter(w => w.platform === platform);
+            }
+            if (category) {
+                filteredWorkflows = filteredWorkflows.filter(w => w.category === category);
+            }
+            if (searchTerm) {
+                filteredWorkflows = filteredWorkflows.filter(w => 
+                    w.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                    w.description.toLowerCase().includes(searchTerm.toLowerCase())
+                );
+            }
+            const grid = document.getElementById('workflowGrid');
+            grid.innerHTML = filteredWorkflows.map(workflow => `
+                <div class="workflow-card">
+                    <div class="workflow-header">
+                        <div>
+                            <h3 class="workflow-title">${workflow.title}</h3>
+                            <div class="workflow-rating">
+                                ${generateStars(workflow.rating)}
+                                <span>(${workflow.reviews})</span>
+                            </div>
+                        </div>
+                        <span class="platform-badge platform-${workflow.platform}">${workflow.platform}</span>
+                    </div>
+                    <p class="workflow-description">${workflow.description}</p>
+                    <div class="workflow-footer">
+                        <span class="workflow-price">€${workflow.price}</span>
+                        <div>
+                            <button class="btn-buy" onclick="buyWorkflow('${workflow.title}', ${workflow.price})">
+                                <i class="fab fa-whatsapp"></i>
+                                Acheter
+                            </button>
+                            <button class="btn" style="margin-left: 0.5rem; padding: 0.6rem 0.8rem; background: #3c3c3c; color: #e0e0e0;" onclick="showWorkflowDetails(${workflow.id})">
+                                <i class="fas fa-info-circle"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+            if (filteredWorkflows.length === 0) {
+                grid.innerHTML = '<div style="text-align: center; grid-column: 1/-1; padding: 2rem; color: #b0b0b0;"><i class="fas fa-search" style="font-size: 2rem; margin-bottom: 0.8rem; display: block;"></i>Aucun workflow trouvé pour ces critères.</div>';
+            }
+        }
+
+        // Ajouter des filtres
+        function addFilters() {
+            const catalogSection = document.getElementById('catalog');
+            const container = catalogSection.querySelector('.container');
+            const filtersHTML = `
+                <div style="background: #333333; padding: 1.5rem; border-radius: 12px; margin-bottom: 1.5rem; box-shadow: 0 2px 10px rgba(0,0,0,0.2);">
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; align-items: end;">
+                        <div>
+                            <label style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: #e0e0e0; font-size: 0.9rem;">Rechercher</label>
+                            <input type="text" id="searchInput" placeholder="Nom ou description..." style="width: 100%; padding: 0.7rem; border: 1px solid #555555; border-radius: 8px; background: #2c2c2c; color: #e0e0e0; font-size: 0.85rem;" onkeyup="handleSearch()">
+                        </div>
+                        <div>
+                            <label style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: #e0e0e0; font-size: 0.9rem;">Plateforme</label>
+                            <select id="platformFilter" style="width: 100%; padding: 0.7rem; border: 1px solid #555555; border-radius: 8px; background: #2c2c2c; color: #e0e0e0; font-size: 0.85rem;" onchange="applyFilters()">
+                                <option value="">Toutes les plateformes</option>
+                                <option value="n8n">n8n</option>
+                                <option value="make">Make</option>
+                                <option value="zapier">Zapier</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: #e0e0e0; font-size: 0.9rem;">Catégorie</label>
+                            <select id="categoryFilter" style="width: 100%; padding: 0.7rem; border: 1px solid #555555; border-radius: 8px; background: #2c2c2c; color: #e0e0e0; font-size: 0.85rem;" onchange="applyFilters()">
+                                <option value="">Toutes les catégories</option>
+                                <option value="email">Email Marketing</option>
+                                <option value="social">Réseaux Sociaux</option>
+                                <option value="data">Traitement de Données</option>
+                                <option value="crm">CRM</option>
+                                <option value="ecommerce">E-commerce</option>
+                                <option value="support">Support Client</option>
+                            </select>
+                        </div>
+                        <div>
+                            <button onclick="resetFilters()" style="width: 100%; padding: 0.7rem; background: #3c3c3c; border: 1px solid #555555; border-radius: 8px; cursor: pointer; color: #e0e0e0; font-size: 0.85rem;">
+                                <i class="fas fa-undo"></i> Reset
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            const titleElement = container.querySelector('.section-title');
+            titleElement.insertAdjacentHTML('afterend', filtersHTML);
+        }
+
+        function handleSearch() {
+            clearTimeout(window.searchTimeout);
+            window.searchTimeout = setTimeout(applyFilters, 300);
+        }
+
+        function applyFilters() {
+            const platform = document.getElementById('platformFilter')?.value || '';
+            const category = document.getElementById('categoryFilter')?.value || '';
+            const searchTerm = document.getElementById('searchInput')?.value || '';
+            filterWorkflows(platform, category, searchTerm);
+        }
+
+        function resetFilters() {
+            document.getElementById('platformFilter').value = '';
+            document.getElementById('categoryFilter').value = '';
+            document.getElementById('searchInput').value = '';
+            generateWorkflowGrid();
+        }
+
+        // Gestion du menu mobile
+        function toggleMobileMenu() {
+            const navLinks = document.querySelector('.nav-links');
+            navLinks.classList.toggle('active');
+        }
+
+        // Initialisation au chargement de la page
+        window.addEventListener('load', function() {
+            setTimeout(() => {
+                if (document.getElementById('catalog')) {
+                    addFilters();
+                }
+            }, 100);
+        });
+
+        // Smooth scroll pour les ancres
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+    </script>
+</body>
+</html>
