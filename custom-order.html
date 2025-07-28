@@ -221,6 +221,51 @@
                 padding: 0.7rem;
             }
         }
+
+        /* Footer */
+        .footer {
+            background: #1e1e1e;
+            color: #e0e0e0;
+            padding: 2rem 1.5rem;
+            border-top: 1px solid #444444;
+            margin-top: 3rem;
+        }
+
+        .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .footer-section h3 {
+            margin-bottom: 0.8rem;
+            color: #00ff88;
+            font-size: 1.1rem;
+        }
+
+        .footer-section a {
+            color: #b0b0b0;
+            text-decoration: none;
+            display: block;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+            transition: color 0.3s ease;
+        }
+
+        .footer-section a:hover {
+            color: #00ff88;
+        }
+
+        .footer-bottom {
+            text-align: center;
+            padding-top: 1.5rem;
+            margin-top: 1.5rem;
+            border-top: 1px solid #444444;
+            color: #b0b0b0;
+            font-size: 0.9rem;
+        }
     </style>
 </head>
 <body>
@@ -281,6 +326,40 @@
             </div>
         </div>
     </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3>WorkflowHub</h3>
+                <p>La marketplace #1 pour les workflows d'automatisation no-code.</p>
+            </div>
+            <div class="footer-section">
+                <h3>Ressources</h3>
+                <a href="#">Documentation</a>
+                <a href="#">Tutoriels</a>
+                <a href="#">Blog</a>
+                <a href="https://github.com/Abdelilah04116" target="_blank">GitHub</a>
+            </div>
+            <div class="footer-section">
+                <h3>Support</h3>
+                <a href="#">Centre d'aide</a>
+                <a href="#">Contact</a>
+                <a href="https://wa.me/212778630007" target="_blank">WhatsApp</a>
+                <a href="#">Communauté</a>
+            </div>
+            <div class="footer-section">
+                <h3>Légal</h3>
+                <a href="#">Mentions légales</a>
+                <a href="#">Politique de confidentialité</a>
+                <a href="#">CGU</a>
+                <a href="#">CGV</a>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2024 WorkflowHub. Tous droits réservés. | Réalisé par Ourti Abdelilah</p>
+        </div>
+    </footer>
 
     <script>
         // Configuration WhatsApp
