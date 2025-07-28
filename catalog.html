@@ -118,6 +118,17 @@
             border-color: #00ff88;
         }
 
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px) scale(0.9);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
         .workflow-header {
             display: flex;
             justify-content: space-between;
@@ -451,7 +462,7 @@
 
     <script>
         // Configuration WhatsApp
-        const WHATSAPP_NUMBER = "+212600000000"; // Remplacez par votre numéro
+        const WHATSAPP_NUMBER = "+212778630007"; // Remplacez par votre numéro
 
         // Base de données des workflows
         const workflows = [
@@ -464,7 +475,7 @@
                 rating: 4.8,
                 reviews: 24,
                 category: "email",
-                github: "https://github.com/example/email-automation",
+                github: "https://github.com/Abdelilah04116",
                 instructions: "1. Importez le fichier JSON dans n8n\n2. Configurez vos credentials email\n3. Personnalisez les templates\n4. Activez le workflow"
             },
             {
@@ -476,7 +487,7 @@
                 rating: 4.9,
                 reviews: 18,
                 category: "crm",
-                github: "https://github.com/example/crm-sync",
+                github: "https://github.com/Abdelilah04116",
                 instructions: "1. Importez dans Make\n2. Connectez vos CRM\n3. Mappez les champs\n4. Testez la synchronisation"
             },
             {
@@ -488,7 +499,7 @@
                 rating: 4.7,
                 reviews: 31,
                 category: "social",
-                github: "https://github.com/example/social-media",
+                github: "https://github.com/Abdelilah04116",
                 instructions: "1. Importez dans Zapier\n2. Connectez vos comptes sociaux\n3. Définissez les règles de publication\n4. Programmez vos posts"
             },
             {
@@ -500,7 +511,7 @@
                 rating: 4.6,
                 reviews: 12,
                 category: "ecommerce",
-                github: "https://github.com/example/ecommerce-data",
+                github: "https://github.com/Abdelilah04116",
                 instructions: "1. Configurez les connexions API\n2. Importez le workflow\n3. Personnalisez les métriques\n4. Activez la synchronisation"
             },
             {
@@ -512,7 +523,7 @@
                 rating: 4.8,
                 reviews: 20,
                 category: "support",
-                github: "https://github.com/example/support-automation",
+                github: "https://github.com/Abdelilah04116",
                 instructions: "1. Connectez votre système de tickets\n2. Importez le workflow\n3. Configurez les règles de routage\n4. Testez l'automatisation"
             },
             {
@@ -524,7 +535,7 @@
                 rating: 4.9,
                 reviews: 15,
                 category: "data",
-                github: "https://github.com/example/report-automation",
+                github: "https://github.com/Abdelilah04116",
                 instructions: "1. Configurez vos sources de données\n2. Importez le template\n3. Personnalisez le format\n4. Programmez l'envoi"
             }
         ];
@@ -619,7 +630,7 @@
                         <pre style="background: #3c3c3c; padding: 0.8rem; border-radius: 8px; white-space: pre-wrap; color: #b0b0b0; font-size: 0.9rem;">${workflow.instructions}</pre>
                         <h3 style="color: #00ff88; font-size: 1.2rem;">Liens utiles</h3>
                         <p><a href="${workflow.github}" target="_blank" style="color: #00ff88; font-size: 0.9rem;"><i class="fab fa-github"></i> Voir sur GitHub</a></p>
-                        <p><a href="#" onclick="alert('Démo interactive bientôt disponible')" style="color: #00ff88; font-size: 0.9rem;"><i class="fas fa-play"></i> Voir la démo</a></p>
+                        <p><a href="#" onclick="showCustomAlert('Démo interactive bientôt disponible')" style="color: #00ff88; font-size: 0.9rem;"><i class="fas fa-play"></i> Voir la démo</a></p>
                     </div>
                 </div>
                 <div style="text-align: center; padding-top: 1.5rem; border-top: 1px solid #444444;">
@@ -716,6 +727,84 @@
             document.getElementById('categoryFilter').value = '';
             document.getElementById('searchInput').value = '';
             generateWorkflowGrid();
+        }
+
+        // Alerte personnalisée
+        function showCustomAlert(message) {
+            // Créer l'overlay
+            const overlay = document.createElement('div');
+            overlay.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0, 0, 0, 0.7);
+                backdrop-filter: blur(5px);
+                z-index: 3000;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            `;
+
+            // Créer la boîte de dialogue
+            const dialog = document.createElement('div');
+            dialog.style.cssText = `
+                background: #333333;
+                border: 2px solid #00ff88;
+                border-radius: 15px;
+                padding: 2rem;
+                max-width: 400px;
+                width: 90%;
+                text-align: center;
+                box-shadow: 0 10px 30px rgba(0, 255, 136, 0.3);
+                animation: slideIn 0.3s ease;
+            `;
+
+            // Contenu de l'alerte
+            dialog.innerHTML = `
+                <div style="margin-bottom: 1.5rem;">
+                    <i class="fas fa-play-circle" style="font-size: 3rem; color: #00ff88; margin-bottom: 1rem;"></i>
+                    <h3 style="color: #e0e0e0; font-size: 1.2rem; margin-bottom: 0.5rem; font-weight: 600;">Démo Interactive</h3>
+                    <p style="color: #b0b0b0; font-size: 0.95rem; line-height: 1.5;">${message}</p>
+                </div>
+                <button onclick="this.closest('.custom-alert-overlay').remove()" style="
+                    background: linear-gradient(135deg, #00ff88 0%, #00cc66 100%);
+                    color: #1e1e1e;
+                    border: none;
+                    padding: 0.8rem 2rem;
+                    border-radius: 25px;
+                    font-weight: 600;
+                    font-size: 0.9rem;
+                    cursor: pointer;
+                    transition: all 0.3s ease;
+                    box-shadow: 0 4px 15px rgba(0, 255, 136, 0.3);
+                " onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 20px rgba(0, 255, 136, 0.5)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 15px rgba(0, 255, 136, 0.3)'">
+                    <i class="fas fa-check"></i> Compris
+                </button>
+            `;
+
+            // Ajouter les classes pour l'animation
+            overlay.className = 'custom-alert-overlay';
+            dialog.className = 'custom-alert-dialog';
+
+            // Assembler et afficher
+            overlay.appendChild(dialog);
+            document.body.appendChild(overlay);
+
+            // Fermer en cliquant sur l'overlay
+            overlay.addEventListener('click', function(e) {
+                if (e.target === overlay) {
+                    overlay.remove();
+                }
+            });
+
+            // Fermer avec la touche Escape
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') {
+                    overlay.remove();
+                }
+            });
         }
 
         // Initialisation au chargement de la page

@@ -767,6 +767,17 @@
             100% { transform: translate(10px, 10px); }
         }
 
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px) scale(0.9);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
         .automation-container {
             max-width: 1200px;
             margin: 0 auto;
@@ -1495,13 +1506,13 @@
                 <a href="#">Documentation</a>
                 <a href="#">Tutoriels</a>
                 <a href="#">Blog</a>
-                <a href="#">GitHub</a>
+                <a href="https://github.com/Abdelilah04116" target="_blank">GitHub</a>
             </div>
             <div class="footer-section">
                 <h3>Support</h3>
                 <a href="#">Centre d'aide</a>
                 <a href="#">Contact</a>
-                <a href="#">WhatsApp</a>
+                <a href="https://wa.me/212778630007" target="_blank">WhatsApp</a>
                 <a href="#">Communauté</a>
             </div>
             <div class="footer-section">
@@ -1562,6 +1573,89 @@
             const navLinks = document.querySelector('.nav-links');
             navLinks.classList.toggle('active');
         }
+
+        // Alerte personnalisée
+        function showCustomAlert(message) {
+            // Créer l'overlay
+            const overlay = document.createElement('div');
+            overlay.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0, 0, 0, 0.7);
+                backdrop-filter: blur(5px);
+                z-index: 3000;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            `;
+
+            // Créer la boîte de dialogue
+            const dialog = document.createElement('div');
+            dialog.style.cssText = `
+                background: #333333;
+                border: 2px solid #00ff88;
+                border-radius: 15px;
+                padding: 2rem;
+                max-width: 400px;
+                width: 90%;
+                text-align: center;
+                box-shadow: 0 10px 30px rgba(0, 255, 136, 0.3);
+                animation: slideIn 0.3s ease;
+            `;
+
+            // Contenu de l'alerte
+            dialog.innerHTML = `
+                <div style="margin-bottom: 1.5rem;">
+                    <i class="fas fa-info-circle" style="font-size: 3rem; color: #00ff88; margin-bottom: 1rem;"></i>
+                    <h3 style="color: #e0e0e0; font-size: 1.2rem; margin-bottom: 0.5rem; font-weight: 600;">Information</h3>
+                    <p style="color: #b0b0b0; font-size: 0.95rem; line-height: 1.5;">${message}</p>
+                </div>
+                <button onclick="this.closest('.custom-alert-overlay').remove()" style="
+                    background: linear-gradient(135deg, #00ff88 0%, #00cc66 100%);
+                    color: #1e1e1e;
+                    border: none;
+                    padding: 0.8rem 2rem;
+                    border-radius: 25px;
+                    font-weight: 600;
+                    font-size: 0.9rem;
+                    cursor: pointer;
+                    transition: all 0.3s ease;
+                    box-shadow: 0 4px 15px rgba(0, 255, 136, 0.3);
+                " onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 20px rgba(0, 255, 136, 0.5)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 15px rgba(0, 255, 136, 0.3)'">
+                    <i class="fas fa-check"></i> OK
+                </button>
+            `;
+
+            // Ajouter les classes pour l'animation
+            overlay.className = 'custom-alert-overlay';
+            dialog.className = 'custom-alert-dialog';
+
+            // Assembler et afficher
+            overlay.appendChild(dialog);
+            document.body.appendChild(overlay);
+
+            // Fermer en cliquant sur l'overlay
+            overlay.addEventListener('click', function(e) {
+                if (e.target === overlay) {
+                    overlay.remove();
+                }
+            });
+
+            // Fermer avec la touche Escape
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') {
+                    overlay.remove();
+                }
+            });
+        }
+
+        // Remplacer l'alerte par défaut
+        window.alert = function(message) {
+            showCustomAlert(message);
+        };
 
         // Initialisation au chargement de la page
         window.addEventListener('load', function() {
