@@ -292,18 +292,22 @@
                 Décrivez-nous votre besoin et nous créerons un workflow personnalisé rien que pour vous.
             </p>
             <div class="custom-order-form">
-                <form id="customOrderForm">
+                <form id="customOrderForm" action="https://api.web3forms.com/submit" method="POST">
+                    <input type="hidden" name="access_key" value="YOUR_WEB3FORMS_KEY">
+                    <input type="hidden" name="subject" value="Nouvelle demande de workflow personnalisé">
+                    <input type="hidden" name="from_name" value="WorkflowHub - Formulaire de contact">
+                    
                     <div class="form-group">
-                        <label for="name">Nom</label>
-                        <input type="text" id="name" required>
+                        <label for="name">Nom *</label>
+                        <input type="text" id="name" name="name" required>
                     </div>
                     <div class="form-group">
-                        <label for="email">Email</label>
-                        <input type="email" id="email" required>
+                        <label for="email">Email *</label>
+                        <input type="email" id="email" name="email" required>
                     </div>
                     <div class="form-group">
-                        <label for="platform">Plateforme souhaitée</label>
-                        <select id="platform" required>
+                        <label for="platform">Plateforme souhaitée *</label>
+                        <select id="platform" name="platform" required>
                             <option value="">Sélectionner une plateforme</option>
                             <option value="Zapier">Zapier</option>
                             <option value="Make">Make</option>
@@ -312,16 +316,16 @@
                         </select>
                     </div>
                     <div class="form-group">
-                        <label for="description">Description du besoin</label>
-                        <textarea id="description" required placeholder="Décrivez en détail le workflow que vous souhaitez (ex : automatisation d'emails, intégration CRM, etc.)"></textarea>
+                        <label for="description">Description du besoin *</label>
+                        <textarea id="description" name="description" required placeholder="Décrivez en détail le workflow que vous souhaitez (ex : automatisation d'emails, intégration CRM, etc.)"></textarea>
                     </div>
                     <div class="form-group">
                         <label for="budget">Budget estimé (€, facultatif)</label>
-                        <input type="number" id="budget" min="0" step="0.01" placeholder="Votre budget approximatif">
+                        <input type="number" id="budget" name="budget" min="0" step="0.01" placeholder="Votre budget approximatif">
                     </div>
                     <button type="submit" class="btn btn-primary">
-                        <i class="fab fa-whatsapp"></i>
-                        Envoyer la demande
+                        <i class="fas fa-envelope"></i>
+                        Envoyer par email
                     </button>
                 </form>
             </div>
@@ -363,29 +367,141 @@
     </footer>
 
     <script>
-        // Configuration WhatsApp
-        const WHATSAPP_NUMBER = "+212778630007"; // Remplacez par votre numéro
-
         // Gestion du formulaire de commande personnalisée
         document.addEventListener('DOMContentLoaded', function() {
             const customOrderForm = document.getElementById('customOrderForm');
             if (customOrderForm) {
                 customOrderForm.addEventListener('submit', function(e) {
                     e.preventDefault();
+                    
+                    // Récupération des données du formulaire
                     const name = document.getElementById('name').value;
                     const email = document.getElementById('email').value;
                     const platform = document.getElementById('platform').value;
                     const description = document.getElementById('description').value;
                     const budget = document.getElementById('budget').value || 'Non spécifié';
-                    const message = `Bonjour, je souhaite un workflow personnalisé pour ${platform}. Mon besoin : ${description}. Mon nom est ${name}, email : ${email}, budget : ${budget}`;
-                    const encodedMessage = encodeURIComponent(message);
-                    const whatsappUrl = `https://wa.me/${WHATSAPP_NUMBER.replace('+', '')}?text=${encodedMessage}`;
-                    window.open(whatsappUrl, '_blank');
-                    customOrderForm.reset();
-                    alert('Votre demande a été envoyée avec succès ! Nous vous contacterons bientôt.');
+                    
+                    // Validation de l'email
+                    if (!email || !email.includes('@')) {
+                        showCustomAlert('Veuillez entrer une adresse email valide.');
+                        return;
+                    }
+                    
+                    // Affichage du loader
+                    const submitBtn = document.querySelector('.btn-primary');
+                    const originalText = submitBtn.innerHTML;
+                    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Envoi en cours...';
+                    submitBtn.disabled = true;
+                    
+                    // Préparation des données pour Web3Forms
+                    const formData = new FormData(customOrderForm);
+                    formData.append('message', `
+                        Nouvelle demande de workflow personnalisé
+
+                        Nom : ${name}
+                        Email : ${email}
+                        Plateforme : ${platform}
+                        Description du besoin : ${description}
+                        Budget estimé : ${budget}
+                        Date de demande : ${new Date().toLocaleString('fr-FR')}
+                    `);
+                    
+                    // Envoi via Web3Forms
+                    fetch('https://api.web3forms.com/submit', {
+                        method: 'POST',
+                        body: formData
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            customOrderForm.reset();
+                            showCustomAlert('Votre demande a été envoyée avec succès ! Nous vous contacterons bientôt par email.');
+                        } else {
+                            throw new Error('Erreur lors de l\'envoi');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Erreur:', error);
+                        showCustomAlert('Erreur lors de l\'envoi. Veuillez réessayer ou nous contacter directement.');
+                    })
+                    .finally(() => {
+                        // Restauration du bouton
+                        submitBtn.innerHTML = originalText;
+                        submitBtn.disabled = false;
+                    });
                 });
             }
         });
+
+        // Fonction d'alerte personnalisée
+        function showCustomAlert(message) {
+            const overlay = document.createElement('div');
+            overlay.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0, 0, 0, 0.7);
+                backdrop-filter: blur(5px);
+                z-index: 3000;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            `;
+
+            const dialog = document.createElement('div');
+            dialog.style.cssText = `
+                background: #333333;
+                border: 2px solid #00ff88;
+                border-radius: 15px;
+                padding: 2rem;
+                max-width: 400px;
+                width: 90%;
+                text-align: center;
+                box-shadow: 0 10px 30px rgba(0, 255, 136, 0.3);
+                animation: slideIn 0.3s ease;
+            `;
+
+            dialog.innerHTML = `
+                <div style="margin-bottom: 1.5rem;">
+                    <i class="fas fa-info-circle" style="font-size: 3rem; color: #00ff88; margin-bottom: 1rem;"></i>
+                    <h3 style="color: #e0e0e0; font-size: 1.2rem; margin-bottom: 0.5rem; font-weight: 600;">Information</h3>
+                    <p style="color: #b0b0b0; font-size: 0.95rem; line-height: 1.5;">${message}</p>
+                </div>
+                <button onclick="this.closest('.custom-alert-overlay').remove()" style="
+                    background: linear-gradient(135deg, #00ff88 0%, #00cc66 100%);
+                    color: #1e1e1e;
+                    border: none;
+                    padding: 0.8rem 2rem;
+                    border-radius: 25px;
+                    font-weight: 600;
+                    font-size: 0.9rem;
+                    cursor: pointer;
+                    transition: all 0.3s ease;
+                    box-shadow: 0 4px 15px rgba(0, 255, 136, 0.3);
+                " onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 20px rgba(0, 255, 136, 0.5)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 15px rgba(0, 255, 136, 0.3)'">
+                    <i class="fas fa-check"></i> OK
+                </button>
+            `;
+
+            overlay.className = 'custom-alert-overlay';
+            dialog.className = 'custom-alert-dialog';
+            overlay.appendChild(dialog);
+            document.body.appendChild(overlay);
+
+            overlay.addEventListener('click', function(e) {
+                if (e.target === overlay) {
+                    overlay.remove();
+                }
+            });
+
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') {
+                    overlay.remove();
+                }
+            });
+        }
 
         // Gestion du menu mobile
         function toggleMobileMenu() {
