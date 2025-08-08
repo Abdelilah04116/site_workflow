@@ -1285,6 +1285,11 @@
                 <li><a href="custom-order.html">Commande personnalisée</a></li>
                 <li><a href="blog.html">Blog</a></li>
                 <li><a href="faq.html">FAQ</a></li>
+                <li id="user-indicator" style="display: none;">
+                    <a href="#" style="color: #00ff88; font-weight: 600;">
+                        <i class="fas fa-user"></i> <span id="user-email"></span>
+                    </a>
+                </li>
             </ul>
         </nav>
     </header>
@@ -1529,6 +1534,9 @@
         </div>
     </footer>
 
+    <!-- Système d'authentification -->
+    <script src="auth.js"></script>
+    
     <script>
         // Animation des statistiques
         function animateStats() {
