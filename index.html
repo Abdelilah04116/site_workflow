@@ -1721,15 +1721,49 @@
             }
 
             // Connexion de l'utilisateur
-            login(email) {
-                this.user = {
-                    email: email,
-                    joinedAt: new Date().toISOString(),
-                    lastVisit: new Date().toISOString()
-                };
-                this.saveUser();
-                this.updateUI();
-                this.showWelcomeMessage();
+            async login(email) {
+                try {
+                    // Envoyer l'email à l'API
+                    const response = await fetch('/api/users', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ email: email })
+                    });
+
+                    const result = await response.json();
+
+                    if (result.success) {
+                        // Sauvegarder localement
+                        this.user = {
+                            email: email,
+                            joinedAt: result.user.joined_at,
+                            lastVisit: result.user.last_visit,
+                            visitCount: result.user.visit_count
+                        };
+                        this.saveUser();
+                        this.updateUI();
+                        this.showWelcomeMessage();
+                        
+                        // Afficher un message de succès
+                        console.log('Utilisateur enregistré avec succès:', result.message);
+                    } else {
+                        throw new Error(result.error || 'Erreur lors de l\'enregistrement');
+                    }
+                } catch (error) {
+                    console.error('Erreur lors de la connexion:', error);
+                    // En cas d'erreur, sauvegarder localement quand même
+                    this.user = {
+                        email: email,
+                        joinedAt: new Date().toISOString(),
+                        lastVisit: new Date().toISOString()
+                    };
+                    this.saveUser();
+                    this.updateUI();
+                    this.showWelcomeMessage();
+                    this.showError('Connexion réussie (mode hors ligne)');
+                }
             }
 
             // Sauvegarder l'utilisateur

@@ -22,6 +22,9 @@
   "devDependencies": {
     "serve": "^14.2.1"
   },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.38.4"
+  },
   "engines": {
     "node": ">=14.0.0"
   }
