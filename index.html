@@ -1670,6 +1670,24 @@
         window.addEventListener('load', function() {
             createIntersectionObserver();
         });
+
+        // Fonction de test pour l'authentification
+        function testAuth() {
+            if (window.WorkflowHubAuth) {
+                window.WorkflowHubAuth.showWelcomePopup();
+            } else {
+                console.log('Auth system not loaded');
+                // Forcer l'initialisation
+                setTimeout(() => {
+                    if (window.WorkflowHubAuth) {
+                        window.WorkflowHubAuth.showWelcomePopup();
+                    }
+                }, 1000);
+            }
+        }
+
+        // Exposer la fonction de test globalement
+        window.testAuth = testAuth;
     </script>
 </body>
 </html>

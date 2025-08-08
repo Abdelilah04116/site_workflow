@@ -8,11 +8,14 @@ class WorkflowHubAuth {
 
     // Initialisation du système
     init() {
-        if (!this.user) {
-            this.showWelcomePopup();
-        } else {
-            this.updateUI();
-        }
+        // Petit délai pour s'assurer que tout est chargé
+        setTimeout(() => {
+            if (!this.user) {
+                this.showWelcomePopup();
+            } else {
+                this.updateUI();
+            }
+        }, 500);
     }
 
     // Afficher la popup de bienvenue
@@ -378,9 +381,26 @@ document.head.appendChild(authStyles);
 
 // Initialiser l'authentification au chargement de la page
 let auth;
-document.addEventListener('DOMContentLoaded', () => {
-    auth = new WorkflowHubAuth();
-});
 
-// Exposer l'instance pour un accès global
-window.WorkflowHubAuth = auth;
+// Fonction d'initialisation
+function initAuth() {
+    if (!auth) {
+        auth = new WorkflowHubAuth();
+        window.WorkflowHubAuth = auth;
+    }
+}
+
+// Initialiser quand le DOM est prêt
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initAuth);
+} else {
+    // Le DOM est déjà chargé
+    initAuth();
+}
+
+// Initialiser aussi quand la page est complètement chargée
+window.addEventListener('load', () => {
+    if (!auth) {
+        initAuth();
+    }
+});
