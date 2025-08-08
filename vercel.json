@@ -1,13 +1,5 @@
 {
   "version": 2,
-  "functions": {
-    "api/test.js": {
-      "runtime": "nodejs18.x"
-    },
-    "api/users.js": {
-      "runtime": "nodejs18.x"
-    }
-  },
   "rewrites": [
     {
       "source": "/catalog",
