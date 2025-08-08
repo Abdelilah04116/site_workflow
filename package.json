@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "Marketplace d'automatisation avec workflows prêts à l'emploi pour n8n, Make et Zapier",
   "main": "index.html",
+  "type": "module",
   "scripts": {
     "dev": "npx serve .",
     "build": "echo 'Build completed'",

@@ -24,7 +24,8 @@ export default async function handler(req, res) {
       const { email } = req.body;
 
       if (!email) {
-        return res.status(400).json({ error: 'Email requis' });
+        res.status(400).json({ error: 'Email requis' });
+        return;
       }
 
       // Vérifier si l'utilisateur existe déjà
@@ -48,11 +49,12 @@ export default async function handler(req, res) {
 
         if (error) throw error;
 
-        return res.status(200).json({ 
+        res.status(200).json({ 
           success: true, 
           user: data,
           message: 'Utilisateur mis à jour'
         });
+        return;
       }
 
       // Créer un nouvel utilisateur
@@ -71,11 +73,12 @@ export default async function handler(req, res) {
 
       if (error) throw error;
 
-      return res.status(201).json({ 
+      res.status(201).json({ 
         success: true, 
         user: data,
         message: 'Utilisateur créé'
       });
+      return;
 
     } else if (req.method === 'GET') {
       // Récupérer tous les utilisateurs (pour l'admin)
@@ -86,20 +89,23 @@ export default async function handler(req, res) {
 
       if (error) throw error;
 
-      return res.status(200).json({ 
+      res.status(200).json({ 
         success: true, 
         users: data 
       });
+      return;
 
     } else {
-      return res.status(405).json({ error: 'Méthode non autorisée' });
+      res.status(405).json({ error: 'Méthode non autorisée' });
+      return;
     }
 
   } catch (error) {
     console.error('Erreur API:', error);
-    return res.status(500).json({ 
+    res.status(500).json({ 
       error: 'Erreur serveur',
       details: error.message 
     });
+    return;
   }
 }

@@ -15,7 +15,7 @@ export default async function handler(req, res) {
     const supabaseUrl = process.env.SUPABASE_URL;
     const supabaseKey = process.env.SUPABASE_ANON_KEY;
 
-    return res.status(200).json({
+    const response = {
       success: true,
       message: 'Test API fonctionne',
       env: {
@@ -24,11 +24,13 @@ export default async function handler(req, res) {
         supabaseUrl: supabaseUrl ? supabaseUrl.substring(0, 20) + '...' : 'Non défini',
         supabaseKey: supabaseKey ? supabaseKey.substring(0, 20) + '...' : 'Non défini'
       }
-    });
+    };
+
+    res.status(200).json(response);
 
   } catch (error) {
     console.error('Erreur API de test:', error);
-    return res.status(500).json({ 
+    res.status(500).json({ 
       error: 'Erreur serveur',
       details: error.message 
     });
